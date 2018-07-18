@@ -150,6 +150,9 @@ public class EstimateLibraryComplexity extends AbstractOpticalDuplicateFinderCom
     @Argument(doc = "Read two barcode SAM tag (ex. BX for 10X Genomics)", optional = true)
     public String READ_TWO_BARCODE_TAG = null;
 
+    @Argument(doc= "Default false.")
+    public boolean DUPLEX_UMI = false;
+
     @Argument(doc = "The maximum number of bases to consider when comparing reads (0 means no maximum).", optional = true)
     public int MAX_READ_LENGTH = 0;
 
@@ -399,22 +402,32 @@ public class EstimateLibraryComplexity extends AbstractOpticalDuplicateFinderCom
     }
 
     public int getBarcodeValue(final SAMRecord record) {
-        return getReadBarcodeValue(record, BARCODE_TAG);
+        return getReadBarcodeValue(record, BARCODE_TAG, DUPLEX_UMI);
     }
 
-    public static int getReadBarcodeValue(final SAMRecord record, final String tag) {
+    public static int getReadBarcodeValue(final SAMRecord record, final String tag, final boolean duplexUmi) {
         if (null == tag) return 0;
         final String attr = record.getStringAttribute(tag);
-        if (null == attr) return 0;
-        else return attr.hashCode();
+
+        if(duplexUmi && (record.getFirstOfPairFlag() != record.getReadNegativeStrandFlag())) {
+            final String[] split = attr.split("-");
+            // Duplex UMIs should have a UMI before the -, and after the -
+            if(split.length == 2) {
+                return (split[1] + split[0]).hashCode();
+            } else {
+                throw new PicardException("Malformed duplex UMI: " + attr);
+            }
+        } else {
+            return attr.replace("-", "").hashCode();
+        }
     }
 
     private int getReadOneBarcodeValue(final SAMRecord record) {
-        return getReadBarcodeValue(record, READ_ONE_BARCODE_TAG);
+        return getReadBarcodeValue(record, READ_ONE_BARCODE_TAG, DUPLEX_UMI);
     }
 
     private int getReadTwoBarcodeValue(final SAMRecord record) {
-        return getReadBarcodeValue(record, READ_TWO_BARCODE_TAG);
+        return getReadBarcodeValue(record, READ_TWO_BARCODE_TAG, DUPLEX_UMI);
     }
 
     /** Stock main method. */

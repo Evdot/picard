@@ -182,6 +182,9 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
     @Argument(doc= "Clear DT tag from input SAM records. Should be set to false if input SAM doesn't have this tag.  Default true")
     public boolean CLEAR_DT = true;
 
+    @Argument(doc= "Default false.")
+    public boolean DUPLEX_UMI = false;
+
     private SortingCollection<ReadEndsForMarkDuplicates> pairSort;
     private SortingCollection<ReadEndsForMarkDuplicates> fragSort;
     private SortingLongCollection duplicateIndexes;
@@ -194,15 +197,15 @@ public class MarkDuplicates extends AbstractMarkDuplicatesCommandLineProgram {
     protected LibraryIdGenerator libraryIdGenerator = null; // this is initialized in buildSortedReadEndLists
 
     private int getBarcodeValue(final SAMRecord record) {
-        return EstimateLibraryComplexity.getReadBarcodeValue(record, BARCODE_TAG);
+        return EstimateLibraryComplexity.getReadBarcodeValue(record, BARCODE_TAG, DUPLEX_UMI);
     }
 
     private int getReadOneBarcodeValue(final SAMRecord record) {
-        return EstimateLibraryComplexity.getReadBarcodeValue(record, READ_ONE_BARCODE_TAG);
+        return EstimateLibraryComplexity.getReadBarcodeValue(record, READ_ONE_BARCODE_TAG, DUPLEX_UMI);
     }
 
     private int getReadTwoBarcodeValue(final SAMRecord record) {
-        return EstimateLibraryComplexity.getReadBarcodeValue(record, READ_TWO_BARCODE_TAG);
+        return EstimateLibraryComplexity.getReadBarcodeValue(record, READ_TWO_BARCODE_TAG, DUPLEX_UMI);
     }
 
     public MarkDuplicates() {
